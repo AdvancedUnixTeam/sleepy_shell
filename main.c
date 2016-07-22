@@ -291,6 +291,7 @@ char **shell_split_line(char *line) {
         exit(EXIT_FAILURE);
     }
     token = strtok(line, SHELL_TOK_DELIM);
+    printf("\n%s ", token);
     while(token != NULL) {
         tokens[position] = token;
         position++;
@@ -303,6 +304,7 @@ char **shell_split_line(char *line) {
             }
         }
         token = strtok(NULL, SHELL_TOK_DELIM);
+        printf("\n%s ", token);
     }
     tokens[position] = NULL;
     return tokens;
@@ -375,11 +377,11 @@ int shell_execute(char **args) {
     if(args[0] == NULL) {
         return 1;
     }
-//    for(i=0; i<shell_num_builtins(); i++) {  ******** NOTE: shell_num function not implemented yet********
-//        if(strcmp(args[0], builtin_str[i]) == 0) {
-//            return (*builtin_func[i]) (args);
-//        }
-//    }
+    for(i=0; i<shell_num_builtins(); i++) {  ******** NOTE: shell_num function not implemented yet********
+       if(strcmp(args[0], builtin_str[i]) == 0) {
+           return (*builtin_func[i]) (args);
+       }
+    }
     return shell_launch(args);
 }
 
@@ -393,9 +395,11 @@ void shell_loop(void)
         printf("【ツ】 ");
         line = shell_readLine();
         args = shell_split_line(line);
+
+
         job *theJob = malloc(sizeof(job));
         shell_processTokens(theJob, args);
-        launch_job(theJob, 1);
+        //launch_job(theJob, 1);
         status = shell_execute(args);
         free(line);
         free(args);
