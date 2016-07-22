@@ -96,7 +96,7 @@ void do_job_notification (void) {
             else
                 first_job = jnext;
 
-            //free_job (j);  ************ NOTE: Not yet implemented *****************
+            free_job (j);
         }
         /* Notify the user about stopped jobs,
          marking them so that we won’t do this more than once.  */
@@ -377,10 +377,10 @@ int shell_execute(char **args) {
     if(args[0] == NULL) {
         return 1;
     }
-    for(i=0; i<shell_num_builtins(); i++) {  ******** NOTE: shell_num function not implemented yet********
-       if(strcmp(args[0], builtin_str[i]) == 0) {
+    for(i=0; i<shell_num_builtins(); i++) {
+        if(strcmp(args[0], builtin_str[i]) == 0) {
            return (*builtin_func[i]) (args);
-       }
+        }
     }
     return shell_launch(args);
 }
@@ -399,7 +399,7 @@ void shell_loop(void)
 
         job *theJob = malloc(sizeof(job));
         shell_processTokens(theJob, args);
-        //launch_job(theJob, 1);
+        launch_job(theJob, 1);
         status = shell_execute(args);
         free(line);
         free(args);
