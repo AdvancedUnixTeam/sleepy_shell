@@ -295,7 +295,7 @@ char **shell_split_line(char *line) {
         exit(EXIT_FAILURE);
     }
     token = strtok(line, SHELL_TOK_DELIM);
-    printf("\n%s ", token);
+    //printf("\n%s ", token);
     while(token != NULL) {
         tokens[position] = token;
         position++;
@@ -308,7 +308,7 @@ char **shell_split_line(char *line) {
             }
         }
         token = strtok(NULL, SHELL_TOK_DELIM);
-        printf("\n%s ", token);
+        //printf(" %s ", token);
     }
     tokens[position] = NULL;
     return tokens;
