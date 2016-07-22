@@ -6,6 +6,10 @@
 #define SHELL_TOK_BUFFSIZE 64
 #define SHELL_TOK_DELIM " \t\r\n\a"
 
+void free_job(void *j) {
+    free(j);
+}
+
 /* Put job j in the foreground.  If cont is nonzero,
    restore the saved terminal modes and send the process group a
    SIGCONT signal to wake it up before we block.  */
