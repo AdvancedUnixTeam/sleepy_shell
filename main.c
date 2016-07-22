@@ -6,6 +6,10 @@
 #define SHELL_TOK_BUFFSIZE 64
 #define SHELL_TOK_DELIM " \t\r\n\a"
 
+void free_job(void *j) {
+    free(j);
+}
+
 /* Put job j in the foreground.  If cont is nonzero,
    restore the saved terminal modes and send the process group a
    SIGCONT signal to wake it up before we block.  */
@@ -96,7 +100,7 @@ void do_job_notification (void) {
             else
                 first_job = jnext;
 
-            //free_job (j);  ************ NOTE: Not yet implemented *****************
+            free_job (j);
         }
         /* Notify the user about stopped jobs,
          marking them so that we won’t do this more than once.  */
@@ -375,11 +379,11 @@ int shell_execute(char **args) {
     if(args[0] == NULL) {
         return 1;
     }
-//    for(i=0; i<shell_num_builtins(); i++) {  ******** NOTE: shell_num function not implemented yet********
-//        if(strcmp(args[0], builtin_str[i]) == 0) {
-//            return (*builtin_func[i]) (args);
-//        }
-//    }
+    for(i=0; i<shell_num_builtins(); i++) {
+        if(strcmp(args[0], builtin_str[i]) == 0) {
+           return (*builtin_func[i]) (args);
+        }
+    }
     return shell_launch(args);
 }
 
