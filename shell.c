@@ -300,18 +300,49 @@ void launch_job (job *j, int foreground) {
        put_job_in_background (j, 0);
 }
 
+/**/
 int shell_process_tokens(job *j, char ** args) {
     int i;
-    for(i = 0; i < (sizeof(args)/sizeof(args[0])); i++) {
+    i = 0;
+    struct process ** process_list;
+    while(args[i] != NULL) {
+        if(!strcmp(args[i], "|")) {
+            printf("Pipe token found!\n");
+            if(args[i+1] != NULL) {
+                printf("Piped command is %s\n", args[i+1]);
+                process_list[i] = args[i+1];
+            }
+        }
+        else if(!strcmp(args[i], ">")) {
+            printf("Outfile token found!\n");
+            if(args[i+1] != NULL) {
+                printf("Outfile is %s\n", args[i+1]);
+                job->stdout = args[i+1]
+            }
+        }
+        else if(!strcmp(args[i], "<")) {
+            printf("Infile token found!\n");
+            if(args[i+1] != NULL) {
+                printf("Infile is %s\n", args[i+1]);
+                job->stdin = args[i+1]
+            }
+        }
+        // Not the best
+        else {
+            job->command = args[i];
+        }
 
+        i++;
     }
-    printf("%d token(s) found\n", i);
+    job->first_process = process_list[0];
+    return 0;
 }
 
 /*
  *  Does not allow quoting or backslash escaping in command line args
  */
 char **shell_split_line(char *line) {
+  //  char tmp = *line;
     int buffsize = SHELL_TOK_BUFFSIZE, position = 0;
     char **tokens = malloc(buffsize * sizeof(char*));
     char *token;
@@ -320,10 +351,10 @@ char **shell_split_line(char *line) {
         exit(EXIT_FAILURE);
     }
     token = strtok(line, SHELL_TOK_DELIM);
-    printf("\n%s ", token);
+    //printf("%s\n", token);
     while(token != NULL) {
         tokens[position] = token;
-        position++;
+        position = position +1;
         if(position >= buffsize) {
             buffsize += SHELL_TOK_BUFFSIZE;
             tokens = realloc(tokens, buffsize * sizeof(char*));
@@ -333,7 +364,7 @@ char **shell_split_line(char *line) {
             }
         }
         token = strtok(NULL, SHELL_TOK_DELIM);
-        //printf(" %s ", token);
+       // printf("%s\n", token);
     }
     tokens[position] = NULL;
     return tokens;
