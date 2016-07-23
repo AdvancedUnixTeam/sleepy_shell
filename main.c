@@ -6,7 +6,7 @@ int main(int argc, char **argv)
     shell_is_interactive = isatty (shell_terminal); // See if we are running interactively.
     char *line;
     char **args;
-    //int status =1;
+    int status =1;
 
     // Config Files
     // Command Line Loop
@@ -46,18 +46,29 @@ before proceeding. */
 
 /***************Start Shell Loop*****************/
 
-//        do
-//        {
+        do
+        {
             printf("【ツ】 ");
             line = shell_read_line();
             args = shell_split_line(line);
             job *theJob = malloc(sizeof(job));
             shell_process_tokens(theJob, args);
-//            launch_job(theJob, 1);
-//            status = shell_execute(args);
+            printf("before stderr: %d\n", theJob->stderr);
+            printf("stdin: %d\n", theJob->stdin);
+            printf("stdout: %d\n", theJob->stdout);
+            printf("pgid: %d\n", theJob->pgid);
+            struct process *proc = theJob->first_process;
+            printf("first process: %s\n", proc->argv[0]);
+            launch_job(theJob, 1); //change so it returns int status
+            printf("after stderr: %d\n", theJob->stderr);
+            printf("stdin: %d\n", theJob->stdin);
+            printf("stdout: %d\n", theJob->stdout);
+            printf("pgid: %d\n", theJob->pgid);
+            printf("first process: %s\n", theJob->first_process->argv[0]);
+            //status = shell_execute(args);
             free(line);
-//            free(args);
-//        } while (status);
+            free(args);
+        } while (status);
 
 /***************Finish Shell Loop****************/
 

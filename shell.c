@@ -300,41 +300,46 @@ void launch_job (job *j, int foreground) {
        put_job_in_background (j, 0);
 }
 
-/**/
-int shell_process_tokens(job *j, char ** args) {
-    int i;
-    i = 0;
-    struct process ** process_list;
-    while(args[i] != NULL) {
-        if(!strcmp(args[i], "|")) {
-            printf("Pipe token found!\n");
-            if(args[i+1] != NULL) {
-                printf("Piped command is %s\n", args[i+1]);
-                process_list[i] = args[i+1];
-            }
-        }
-        else if(!strcmp(args[i], ">")) {
-            printf("Outfile token found!\n");
-            if(args[i+1] != NULL) {
-                printf("Outfile is %s\n", args[i+1]);
-                job->stdout = args[i+1]
-            }
-        }
-        else if(!strcmp(args[i], "<")) {
-            printf("Infile token found!\n");
-            if(args[i+1] != NULL) {
-                printf("Infile is %s\n", args[i+1]);
-                job->stdin = args[i+1]
-            }
-        }
-        // Not the best
-        else {
-            job->command = args[i];
-        }
+/*Takes in pointer to new job from main as well as the array of strings containing
+the tokens read. It parses the tokens constructing the process list along the way*/
+int shell_process_tokens(job *j, char **args) {
 
+    int i = 0;
+    //save first process in job structure
+    struct process *this_process = malloc(sizeof(process));
+    j->first_process=this_process;
+    j->stdin=STDIN_FILENO;
+    j->stdout=STDOUT_FILENO;
+    j->stderr=STDERR_FILENO;
+
+    do {
+        //initialize process structure
+        this_process->next=NULL;
+
+        //begin parsing token list
+        if(!strcmp(args[i], "|")) printf("Pipe token found!\n");
+        else if(!strcmp(args[i], ">")) printf("Outfile token found!\n");
+        else if(!strcmp(args[i], "<")) printf("Infile token found!\n");
+        else { //is it a builtin function?
+             int j=0;
+             while(!strcmp(args[i], builtin_str[j])){
+                  printf("Builtin %s function found!\n", builtin_str[j]);
+                  this_process->argv[0]=args[i];
+                  this_process->completed=0;
+                  int x=1;
+                  while(args[i+1][0] == '-'){
+                     this_process->argv[x] = args[i];
+                     x++;
+                     i++;
+                  }
+                  this_process->stopped=0;
+
+                  //now initialize next process structure
+                  j++;
+             }
+        }
         i++;
-    }
-    job->first_process = process_list[0];
+    } while(args[i] != NULL);
     return 0;
 }
 
@@ -342,7 +347,6 @@ int shell_process_tokens(job *j, char ** args) {
  *  Does not allow quoting or backslash escaping in command line args
  */
 char **shell_split_line(char *line) {
-  //  char tmp = *line;
     int buffsize = SHELL_TOK_BUFFSIZE, position = 0;
     char **tokens = malloc(buffsize * sizeof(char*));
     char *token;
@@ -351,7 +355,6 @@ char **shell_split_line(char *line) {
         exit(EXIT_FAILURE);
     }
     token = strtok(line, SHELL_TOK_DELIM);
-    //printf("%s\n", token);
     while(token != NULL) {
         tokens[position] = token;
         position = position +1;
@@ -364,7 +367,6 @@ char **shell_split_line(char *line) {
             }
         }
         token = strtok(NULL, SHELL_TOK_DELIM);
-       // printf("%s\n", token);
     }
     tokens[position] = NULL;
     return tokens;

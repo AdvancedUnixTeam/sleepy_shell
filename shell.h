@@ -9,13 +9,14 @@
 #include <stdio.h>
 #include <string.h>
 
-#define SHELL_TOK_BUFFSIZE 64
-#define SHELL_TOK_DELIM " \t\r\n\a"
-#define SHELL_RL_BUFFSIZE 1024
+#define SHELL_TOK_BUFFSIZE  64
+#define SHELL_TOK_DELIM     " \t\r\n\a"
+#define SHELL_RL_BUFFSIZE   1024
+#define SHELL_MAX_NUMPROC   5
 
 /* A process is a single process.  */
 typedef struct process process;
- struct process {
+struct process {
   struct process *next;          // next process in pipeline
   char **argv;                   // for exec
   pid_t pid;                     // process ID
