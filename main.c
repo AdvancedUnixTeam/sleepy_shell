@@ -49,10 +49,10 @@ before proceeding. */
         do
         {
             printf("【ツ】 ");
-            line = shell_readLine();
+            line = shell_read_line();
             args = shell_split_line(line);
             job *theJob = malloc(sizeof(job));
-            shell_processTokens(theJob, args);
+            shell_process_tokens(theJob, args);
             launch_job(theJob, 1);
             status = shell_execute(args);
             free(line);

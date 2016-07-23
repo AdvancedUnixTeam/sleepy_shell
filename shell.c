@@ -300,7 +300,7 @@ void launch_job (job *j, int foreground) {
        put_job_in_background (j, 0);
 }
 
-int shell_processTokens(job *j, char ** args) {
+int shell_process_tokens(job *j, char ** args) {
     int i;
     for(i = 0; i < (sizeof(args) / sizeof(args[0])); i++) {
         if(strcmp(args[i],"|"))
@@ -354,7 +354,7 @@ char **shell_split_line(char *line) {
  *
  *  Keeping it this way for more control of buffer reallocation later on
  */
-char *shell_readLine(void)
+char *shell_read_line(void)
 {
     int buffsize = SHELL_RL_BUFFSIZE;
     int position = 0;
