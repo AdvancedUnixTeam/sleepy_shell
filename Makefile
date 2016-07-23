@@ -3,8 +3,11 @@ HEADERS = shell.h
 
 all: shell
 
-shell: main.o
-	$(CC) main.o  -o shell
+shell: main.o shell.o
+	$(CC) main.o shell.o  -o shell
+
+shell.o: shell.c
+	$(CC) -c shell.c
 
 main.o: main.c
 	$(CC) -c main.c
