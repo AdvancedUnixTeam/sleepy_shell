@@ -302,15 +302,10 @@ void launch_job (job *j, int foreground) {
 
 int shell_process_tokens(job *j, char ** args) {
     int i;
-    for(i = 0; i < (sizeof(args) / sizeof(args[0])); i++) {
-        if(strcmp(args[i],"|"))
-            printf(" Pipe !\n" );
-        else if(0)
-            ;
-        else
-            printf("Invalid input\n" );
+    for(i = 0; i < (sizeof(args)/sizeof(args[0])); i++) {
+
     }
-    return i;
+    printf("%d token(s) found\n", i);
 }
 
 /*
