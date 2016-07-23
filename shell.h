@@ -12,8 +12,6 @@
 #define SHELL_TOK_BUFFSIZE 64
 #define SHELL_TOK_DELIM " \t\r\n\a"
 #define SHELL_RL_BUFFSIZE 1024
-#define SHELL_TOK_BUFFSIZE 64
-#define SHELL_TOK_DELIM " \t\r\n\a"
 
 /* A process is a single process.  */
 typedef struct process process;
