@@ -57,14 +57,13 @@ before proceeding. */
             printf("stdin: %d\n", theJob->stdin);
             printf("stdout: %d\n", theJob->stdout);
             printf("pgid: %d\n", theJob->pgid);
-            struct process *proc = theJob->first_process;
-            printf("first process: %s\n", proc->argv[0]);
-            launch_job(theJob, 1); //change so it returns int status
-            printf("after stderr: %d\n", theJob->stderr);
-            printf("stdin: %d\n", theJob->stdin);
-            printf("stdout: %d\n", theJob->stdout);
-            printf("pgid: %d\n", theJob->pgid);
             printf("first process: %s\n", theJob->first_process->argv[0]);
+//            launch_job(theJob, 1); //change so it returns int status
+//            printf("after stderr: %d\n", theJob->stderr);
+//            printf("stdin: %d\n", theJob->stdin);
+//            printf("stdout: %d\n", theJob->stdout);
+//            printf("pgid: %d\n", theJob->pgid);
+//            printf("first process: %s\n", theJob->first_process->argv[0]);
             //status = shell_execute(args);
             free(line);
             free(args);

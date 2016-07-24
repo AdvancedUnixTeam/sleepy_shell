@@ -306,7 +306,8 @@ int shell_process_tokens(job *j, char **args) {
 
     int i = 0;
     //save first process in job structure
-    struct process *this_process = malloc(sizeof(process));
+    struct process *this_process = malloc(sizeof(struct process));
+    this_process->argv = (char **)malloc(sizeof(char *) * SHELL_MAX_NUMPROC);
     j->first_process=this_process;
     j->stdin=STDIN_FILENO;
     j->stdout=STDOUT_FILENO;
