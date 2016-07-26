@@ -49,12 +49,12 @@ before proceeding. */
         {
             printf("【ツ】 ");
             line = shell_read_line();
-            printf("line entered: %s\n", line);
+            //printf("line entered: %s\n", line);
             int num_tokens;
             args = shell_split_line(line, &num_tokens);
             int i;
-            for(i=0;args[i] != NULL;i++)
-                printf("token #%d: %s\n", i+1, args[i]);
+            // for(i=0;args[i] != NULL;i++)
+            //     printf("token #%d: %s\n", i+1, args[i]);
             struct job *cur_job = malloc(sizeof(struct job));
             if(!cur_job){
                 fprintf(stderr, "main: allocation error\n");
@@ -62,9 +62,9 @@ before proceeding. */
             }
      //     shell_process_tokens(theJob, args);
             struct process *cur_process;
-            char *infile;
-            char *outfile;
-            char *errfile;
+            char *infile = "";
+            char *outfile = "";
+            char *errfile = "";
             int process_count = 0;
             int cur_num_args = 0;
 
@@ -74,7 +74,7 @@ before proceeding. */
             i = 0;
             while(i < process_count) {
 
-                cur_num_args = (int)(sizeof(cur_process->argv)/sizeof(cur_process->argv[0]));
+                cur_num_args = cur_process->argc;
                 printf("Process %d: ", i);
 
                 int j;
@@ -90,14 +90,11 @@ before proceeding. */
             printf("Infile: %s\n", infile);
             printf("Outfile: %s\n", outfile);
             printf("Errfile: %s\n", errfile);
-//            printf("first process: %s\n", theJob->first_process->argv[0]);
-//            printf("first argument: %s\n", theJob->first_process->argv[1]);
-           // status = launch_job(theJob, 1); //change so it returns int status
-            //printf("first process: %s\n", theJob->first_process->argv[0]);
-            //status = shell_execute(args);
+
+            status = launch_job(cur_job, 0); //change so it returns int status
             free(line);
-            //free(args);
-        } while (!status);
+            free(args);
+        } while (status);
 
 /***************Finish Shell Loop****************/
 

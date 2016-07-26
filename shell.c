@@ -198,9 +198,11 @@ void launch_process (process *p,
                      pid_t pgid,
                      int infile, int outfile, int errfile,
                      int foreground) {
+
     pid_t pid;
 
     if (shell_is_interactive) {
+
         /* Put the process into the process group and give the process group
          the terminal, if appropriate.
          This has to be done both by the shell and in the individual
@@ -244,31 +246,40 @@ void launch_process (process *p,
         (*builtin_func[x]) (p->argv);
     }
     else {
+        printf("Launching Process\n");
         execvp (p->argv[0], p->argv);
+        
         perror ("execvp");
         exit (1);
     }
 }
 
 int launch_job (job *j, int foreground) {
+    printf("Launching Job\n");
     struct process *p;
     pid_t pid;
     int mypipe[2], infile, outfile;
     infile = j->stdin;
 
+
     for (p = j->first_process; p; p = p->next) {
 
         char **args = p->argv;
 
-        if(args[0] == NULL) //is our argument list empty?
+        if(args[0] == NULL) {
+            
             return 1; //exit
+        }
+
 
         if (p->next) { //if there is another process in the linked list we create a pipe and save its stdout in outfile
             if (pipe (mypipe) < 0) {
                 perror ("pipe");
+
                 exit (1); //what's this for?
             }
             outfile = mypipe[1]; //pipe's stdout
+
         }
         else
             outfile = j->stdout; //else just save the parent's stdout in outfile
@@ -284,6 +295,7 @@ int launch_job (job *j, int foreground) {
             launch_process (p, j->pgid, infile, outfile, j->stderr, foreground);
         else if (pid < 0) { //The fork failed.
             perror ("fork");
+
             exit (1);
         }
         else { //This is the parent process.
@@ -302,6 +314,8 @@ int launch_job (job *j, int foreground) {
             close (outfile);
 
         infile = mypipe[0];
+
+        return 0;
     }
 
     format_job_info (j, "launched");
@@ -379,7 +393,7 @@ char **shell_split_line(char *line, int *num_tokens) {
         token = strtok(NULL, SHELL_TOK_DELIM);
     }
     tokens[position] = NULL;
-    *num_tokens = position-1;
+    *num_tokens = position;
     return tokens;
 }
 
@@ -467,19 +481,22 @@ int is_builtin(char *arg) {
     return 0;
 }
 
-process * create_process(   job * j,
-                            char **tokens, int num_tokens,
-                            char **infile, char **outfile, char **errfile,
-                            int position, int *process_count) {
+process * create_process(   job * j, 
+                            char ** tokens, int num_tokens,
+                            char ** infile, char ** outfile, char ** errfile, 
+                            int position, int * process_count) {
 
-
+    
     int buffsize = SHELL_RL_BUFFSIZE;
     int max_position = num_tokens;
     int cur_position = 0;
+    int pipe_count = 0;
+    int cur_argc = 0;
     struct process * cur_process = malloc(sizeof(struct process));
     char ** cur_args = malloc(sizeof(char * ) * buffsize);
     cur_process->argv = cur_args;
-
+    cur_process->argc = cur_argc;
+    
     if(!cur_args || !cur_process) {
         fprintf(stderr, "create_process: allocation error\n");
         exit(EXIT_FAILURE);
@@ -492,9 +509,11 @@ process * create_process(   job * j,
 
     if(max_position == 1) {
         (*process_count)++;
+        cur_argc++;
         //printf("Process Count = %d\n", *process_count);
         cur_args[0] = tokens[0];
         cur_process->argv = cur_args;
+        cur_process->argc = cur_argc;
         cur_process->next = NULL;
         return cur_process;
     }
@@ -503,32 +522,37 @@ process * create_process(   job * j,
         fprintf(stderr, "create_process: invalid input\n");
         exit(EXIT_FAILURE);
     }
-
     while(position < max_position) {
-
+        
         if(is_io(tokens[position])) {
             //printf("IO found at position %d\n", position);
             if(is_pipe(tokens[position])) {
                 //printf("Pipe found at position %d\n", position);
                 cur_process->argv = cur_args;
+                cur_process->argc = cur_argc;
                 (*process_count)++;
                 //printf("Process Count = %d\n", *process_count);
                 cur_process->next = create_process(j, tokens, num_tokens, infile, outfile, errfile, ++position, process_count);
                 return cur_process;
             }
-            if(is_input(tokens[position])) {
+            else if(is_input(tokens[position])) {
                 *infile = tokens[++position];
                 position++;
+                continue;
             }
-            if(is_output(tokens[position])) {
+            else if(is_output(tokens[position])) {
                 *outfile = tokens[++position];
                 position++;
+                continue;
             }
-            if(is_err(tokens[position])) {
+            else if(is_err(tokens[position])) {
                 *errfile = tokens[++position];
                 position++;
+                continue;
             }
         }
+        cur_argc++;
+        cur_process->argc = cur_argc;
         cur_args[cur_position] = tokens[position];
         cur_position++;
         position++;
