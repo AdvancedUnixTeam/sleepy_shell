@@ -1,6 +1,6 @@
 #include "shell.h"
 
-int main(int argc, char **argv)
+int main(void)
 {
     shell_terminal = STDIN_FILENO;
     shell_is_interactive = isatty (shell_terminal); // See if we are running interactively.

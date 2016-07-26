@@ -21,7 +21,7 @@ int shell_cd(char **args) {
     return 1;
 }
 
-int shell_help(char **args) {
+int shell_help() {
     int i;
     printf("\nThis is a shell.\n\n");
     printf("The following commands are built in:\n");
@@ -33,7 +33,7 @@ int shell_help(char **args) {
     return 1;
 }
 
-int shell_exit(char **args) {
+int shell_exit() {
     return 0;
 }
 
@@ -111,7 +111,6 @@ int job_is_stopped (job *j) {
    Delete terminated jobs from the active job list.  */
 void do_job_notification (void) {
     job *j, *jlast, *jnext;
-    process *p;
 
     /* Update status information for child processes.  */
     update_status ();
@@ -490,7 +489,6 @@ process * create_process(   job * j,
     int buffsize = SHELL_RL_BUFFSIZE;
     int max_position = num_tokens;
     int cur_position = 0;
-    int pipe_count = 0;
     int cur_argc = 0;
     struct process * cur_process = malloc(sizeof(struct process));
     char ** cur_args = malloc(sizeof(char * ) * buffsize);
