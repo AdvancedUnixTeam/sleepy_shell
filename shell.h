@@ -13,6 +13,7 @@
 #define SHELL_TOK_DELIM     " \t\r\n\a"
 #define SHELL_RL_BUFFSIZE   1024
 #define SHELL_MAX_NUMPROC   5
+#define SHELL_MAX_NUMARG    5
 
 /* A process is a single process.  */
 typedef struct process process;
@@ -43,9 +44,9 @@ int shell_terminal;
 int shell_is_interactive;
 int shell_execute(char **args);
 char *shell_read_line(void);
-char **shell_split_line(char *line);
+char **shell_split_line(char *line, int *num_tokens);
 int shell_process_tokens(job *j, char ** args);
-void launch_job (job *j, int foreground);
+int launch_job (job *j, int foreground);
 job *first_job;
 job *find_job (pid_t pgid);
 int job_is_stopped (job *j);
@@ -58,13 +59,24 @@ void wait_for_job (job *j);
 void format_job_info (job *j, const char *status);
 void do_job_notification (void);
 void free_job(void *j);
-
+process *create_process( job * j, char ** tokens,
+                         int num_tokens, char **infile,
+                         char **outfile, char **err,
+                         int position, int *process_count);
 /*
  *  builtin commands
  */
 int shell_num_builtins();
+int is_builtin(char *arg);
+int is_known_token(char *arg);
 int shell_cd(char **args);
 int shell_help(char **args);
 int shell_exit(char **args);
 
+// new functions
+int is_io(char * s);
+int is_pipe(char * s);
+int is_input(char * s);
+int is_output(char * s);
+int is_err(char * s);
 #endif

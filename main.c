@@ -6,7 +6,7 @@ int main(int argc, char **argv)
     shell_is_interactive = isatty (shell_terminal); // See if we are running interactively.
     char *line;
     char **args;
-    int status =1;
+    int status=1;
 
     // Config Files
     // Command Line Loop
@@ -45,29 +45,59 @@ before proceeding. */
 /***************Finished Initializing Shell******/
 
 /***************Start Shell Loop*****************/
-
         do
         {
             printf("【ツ】 ");
             line = shell_read_line();
-            args = shell_split_line(line);
-            job *theJob = malloc(sizeof(job));
-            shell_process_tokens(theJob, args);
-            printf("before stderr: %d\n", theJob->stderr);
-            printf("stdin: %d\n", theJob->stdin);
-            printf("stdout: %d\n", theJob->stdout);
-            printf("pgid: %d\n", theJob->pgid);
-            printf("first process: %s\n", theJob->first_process->argv[0]);
-//            launch_job(theJob, 1); //change so it returns int status
-//            printf("after stderr: %d\n", theJob->stderr);
-//            printf("stdin: %d\n", theJob->stdin);
-//            printf("stdout: %d\n", theJob->stdout);
-//            printf("pgid: %d\n", theJob->pgid);
+            printf("line entered: %s\n", line);
+            int num_tokens;
+            args = shell_split_line(line, &num_tokens);
+            int i;
+            for(i=0;args[i] != NULL;i++)
+                printf("token #%d: %s\n", i+1, args[i]);
+            struct job *cur_job = malloc(sizeof(struct job));
+            if(!cur_job){
+                fprintf(stderr, "main: allocation error\n");
+                        exit(EXIT_FAILURE);
+            }
+     //     shell_process_tokens(theJob, args);
+            struct process *cur_process;
+            char *infile;
+            char *outfile;
+            char *errfile;
+            int process_count = 0;
+            int cur_num_args = 0;
+
+            cur_job->first_process = create_process(cur_job, args, num_tokens, &infile, &outfile, &errfile, 0, &process_count);
+            cur_process = cur_job->first_process;
+
+            i = 0;
+            while(i < process_count) {
+
+                cur_num_args = (int)(sizeof(cur_process->argv)/sizeof(cur_process->argv[0]));
+                printf("Process %d: ", i);
+
+                int j;
+                for(j=0; j < cur_num_args; j++) {
+                    printf("%s ", cur_process->argv[j]);
+                }
+
+                cur_process = cur_process->next;
+                printf("\n");
+
+                i++;
+            }
+            printf("Infile: %s\n", infile);
+            printf("Outfile: %s\n", outfile);
+            printf("Errfile: %s\n", errfile);
 //            printf("first process: %s\n", theJob->first_process->argv[0]);
+//            printf("first argument: %s\n", theJob->first_process->argv[1]);
+           // status = launch_job(theJob, 1); //change so it returns int status
+            //printf("first process: %s\n", theJob->first_process->argv[0]);
             //status = shell_execute(args);
             free(line);
-            free(args);
-        } while (status);
+            //free(args);
+        } while (!status);
 
 /***************Finish Shell Loop****************/
 
