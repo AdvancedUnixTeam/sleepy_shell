@@ -21,9 +21,11 @@ process * create_process(   job * j,
     int max_position = num_tokens;
     int cur_position = 0;
     int pipe_count = 0;
+    int cur_argc = 0;
     struct process * cur_process = malloc(sizeof(struct process));
     char ** cur_args = malloc(sizeof(char * ) * buffsize);
     cur_process->argv = cur_args;
+    cur_process->argc = cur_argc;
     
     if(!cur_args || !cur_process) {
         fprintf(stderr, "create_process: allocation error\n");
@@ -37,9 +39,11 @@ process * create_process(   job * j,
 
     if(max_position == 1) {
         (*process_count)++;
+        cur_argc++;
         //printf("Process Count = %d\n", *process_count);
         cur_args[0] = tokens[0];
         cur_process->argv = cur_args;
+        cur_process->argc = cur_argc;
         cur_process->next = NULL;
         return cur_process;
     }
@@ -48,7 +52,6 @@ process * create_process(   job * j,
         fprintf(stderr, "create_process: invalid input\n");
         exit(EXIT_FAILURE);
     }
-
     while(position < max_position) {
         
         if(is_io(tokens[position])) {
@@ -56,6 +59,7 @@ process * create_process(   job * j,
             if(is_pipe(tokens[position])) {
                 //printf("Pipe found at position %d\n", position);
                 cur_process->argv = cur_args;
+                cur_process->argc = cur_argc;
                 (*process_count)++;
                 //printf("Process Count = %d\n", *process_count);
                 cur_process->next = create_process(j, tokens, num_tokens, infile, outfile, errfile, ++position, process_count);
@@ -77,6 +81,9 @@ process * create_process(   job * j,
                 continue;
             }
         }
+        printf("Token %d: %s\nIncrementing argc\n",position, tokens[position]);
+        cur_argc++;
+        cur_process->argc = cur_argc;
         cur_args[cur_position] = tokens[position];
         cur_position++;
         position++;
@@ -131,11 +138,11 @@ int main() {
     //printf("creating test data...\n");
     int num_tokens = 11;
     char * my_tokens[num_tokens];
-    my_tokens[0] = "cmd1 -b";
-    my_tokens[1] = "|";
-    my_tokens[2] = "cmd2 c";
-    my_tokens[3] = "|";
-    my_tokens[4] = "cmd3 -def";
+    my_tokens[0] = "cmd1";
+    my_tokens[1] = "-b";
+    my_tokens[2] = "|";
+    my_tokens[3] = "cmd2";
+    my_tokens[4] = "-ce";
     my_tokens[5] = ">";
     my_tokens[6] = "out.txt";
     my_tokens[7] = "<";
@@ -168,9 +175,9 @@ int main() {
     
     i = 0;
     while(i < *process_count) {
-        cur_num_args = (int)(sizeof(cur_process->argv)/sizeof(cur_process->argv[0]));
+        printf("# args for Process %d = %d\n", i, cur_process->argc);
         printf("Process %d: ", i);
-        for(j=0; j < cur_num_args; j++) {
+        for(j=0; j < cur_process->argc; j++) {
             printf("%s ", cur_process->argv[j]);
         }
         cur_process = cur_process->next;
