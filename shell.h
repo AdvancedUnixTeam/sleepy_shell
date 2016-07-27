@@ -63,9 +63,8 @@ void wait_for_job (job *j);
 void format_job_info (job *j, const char *status);
 void do_job_notification (void);
 void free_job(void *j);
-process *create_process( job * j, char ** tokens,
-                         int num_tokens, char **infile,
-                         char **outfile, char **err,
+process *create_process( job * j, 
+                         char ** tokens, int num_tokens,
                          int position, int *process_count);
 /*
  *  builtin commands

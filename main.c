@@ -62,25 +62,15 @@ before proceeding. */
             }
      //     shell_process_tokens(theJob, args);
             struct process *cur_process;
-            char *infile = "";
-            char *outfile = "";
-            char *errfile = "";
+
             int process_count = 0;
             int cur_num_args = 0;
-            cur_job->stdin = 0;
-            cur_job->stdout = 1;
-            cur_job->stderr = 2;
+            cur_job->stdin = STDIN_FILENO;
+            cur_job->stdout = STDOUT_FILENO;
+            cur_job->stderr = STDERR_FILENO;
 
-            cur_job->first_process = create_process(cur_job, args, num_tokens, &infile, &outfile, &errfile, 0, &process_count);
-            if(!strcmp(infile, "")) {
-                cur_job->stdin = open(infile, O_CREAT | O_WRONLY, S_IRWXU);
-            }
-            if(!strcmp(infile, "")) {
-                cur_job->stdout = open(outfile, O_CREAT | O_WRONLY, S_IRWXU);
-            }
-            if(!strcmp(infile, "")) {
-                cur_job->stderr = open(errfile, O_CREAT | O_WRONLY, S_IRWXU);
-            }
+            cur_job->first_process = create_process(cur_job, args, num_tokens, 0, &process_count);
+   
             
             
             
@@ -104,14 +94,11 @@ before proceeding. */
 
                 i++;
             }
-            printf("Infile: %s\n", infile);
-            printf("Outfile: %s\n", outfile);
-            printf("Errfile: %s\n", errfile);
 
-            status = launch_job(cur_job, 0); //change so it returns int status
+            status = launch_job(cur_job, 1); //change so it returns int status
             free(line);
             free(args);
-        } while (status);
+        } while (!status);
 
 /***************Finish Shell Loop****************/
 

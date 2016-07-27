@@ -227,11 +227,13 @@ void launch_process (process *p,
 
     /* Set the standard input/output channels of the new process.  */
     if (infile != STDIN_FILENO) {
+        printf("infile is not stdin\n");
         dup2 (infile, STDIN_FILENO);
         close (infile);
     }
     if (outfile != STDOUT_FILENO) {
         dup2 (outfile, STDOUT_FILENO);
+        printf("outfile is not stdout\n");
         close (outfile);
     }
     if (errfile != STDERR_FILENO) {
@@ -246,6 +248,7 @@ void launch_process (process *p,
     }
     else {
         printf("Launching Process\n");
+
         execvp (p->argv[0], p->argv);
         
         perror ("execvp");
@@ -262,7 +265,7 @@ int launch_job (job *j, int foreground) {
 
 
     for (p = j->first_process; p; p = p->next) {
-
+        printf("Launching Process\n");
         char **args = p->argv;
 
         if(args[0] == NULL) {
@@ -286,15 +289,17 @@ int launch_job (job *j, int foreground) {
         if(!is_builtin(args[0])){ //check if it's a builtin function before you fork because these are handled differently
             j->pgid=0;
             launch_process (p, j->pgid, infile, outfile, j->stderr, foreground);
-            return 0;
+
         }
         else pid = fork ();
 
-        if (pid == 0) //This is the child process.
+
+        if (pid == 0) {
+
             launch_process (p, j->pgid, infile, outfile, j->stderr, foreground);
+        }
         else if (pid < 0) { //The fork failed.
             perror ("fork");
-
             exit (1);
         }
         else { //This is the parent process.
@@ -314,7 +319,7 @@ int launch_job (job *j, int foreground) {
 
         infile = mypipe[0];
 
-        return 0;
+
     }
 
     format_job_info (j, "launched");
@@ -482,7 +487,6 @@ int is_builtin(char *arg) {
 
 process * create_process(   job * j, 
                             char ** tokens, int num_tokens,
-                            char ** infile, char ** outfile, char ** errfile, 
                             int position, int * process_count) {
 
     
@@ -530,21 +534,21 @@ process * create_process(   job * j,
                 cur_process->argc = cur_argc;
                 (*process_count)++;
                 //printf("Process Count = %d\n", *process_count);
-                cur_process->next = create_process(j, tokens, num_tokens, infile, outfile, errfile, ++position, process_count);
+                cur_process->next = create_process(j, tokens, num_tokens, ++position, process_count);
                 return cur_process;
             }
             else if(is_input(tokens[position])) {
-                *infile = tokens[++position];
+                j->stdin = open(tokens[++position], O_CREAT | O_WRONLY, S_IRWXU);
                 position++;
                 continue;
             }
             else if(is_output(tokens[position])) {
-                *outfile = tokens[++position];
+                j->stdout = open(tokens[++position], O_CREAT | O_WRONLY, S_IRWXU);
                 position++;
                 continue;
             }
             else if(is_err(tokens[position])) {
-                *errfile = tokens[++position];
+                j->stderr = open(tokens[++position], O_CREAT | O_WRONLY, S_IRWXU);
                 position++;
                 continue;
             }
