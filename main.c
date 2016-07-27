@@ -67,11 +67,23 @@ before proceeding. */
             char *errfile = "";
             int process_count = 0;
             int cur_num_args = 0;
+            cur_job->stdin = 0;
+            cur_job->stdout = 1;
+            cur_job->stderr = 2;
 
             cur_job->first_process = create_process(cur_job, args, num_tokens, &infile, &outfile, &errfile, 0, &process_count);
-            cur_job->stdin = open(infile, O_CREAT, S_IRWXU);
-            cur_job->stdout = open(outfile, O_CREAT, S_IRWXU);
-            cur_job->stderr = open(errfile, O_CREAT, S_IRWXU);
+            if(!strcmp(infile, "")) {
+                cur_job->stdin = open(infile, O_CREAT | O_WRONLY, S_IRWXU);
+            }
+            if(!strcmp(infile, "")) {
+                cur_job->stdout = open(outfile, O_CREAT | O_WRONLY, S_IRWXU);
+            }
+            if(!strcmp(infile, "")) {
+                cur_job->stderr = open(errfile, O_CREAT | O_WRONLY, S_IRWXU);
+            }
+            
+            
+            
 
 
             cur_process = cur_job->first_process;
