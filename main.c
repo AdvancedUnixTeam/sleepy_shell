@@ -98,7 +98,7 @@ before proceeding. */
             status = launch_job(cur_job, 1); //change so it returns int status
             free(line);
             free(args);
-        } while (!status);
+        } while (status);
 
 /***************Finish Shell Loop****************/
 

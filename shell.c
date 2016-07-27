@@ -232,8 +232,8 @@ void launch_process (process *p,
         close (infile);
     }
     if (outfile != STDOUT_FILENO) {
-        dup2 (outfile, STDOUT_FILENO);
         printf("outfile is not stdout\n");
+        dup2 (outfile, STDOUT_FILENO);
         close (outfile);
     }
     if (errfile != STDERR_FILENO) {
@@ -243,11 +243,11 @@ void launch_process (process *p,
 
     /* Exec the new process.  Make sure we exit.  */
     int x=is_builtin(p->argv[0]);
-    if(x>0){ //if it's a builtin
+    if(x>-1){ //if it's a builtin
         (*builtin_func[x]) (p->argv);
     }
     else {
-        printf("Launching Process\n");
+        
 
         execvp (p->argv[0], p->argv);
         
@@ -257,7 +257,7 @@ void launch_process (process *p,
 }
 
 int launch_job (job *j, int foreground) {
-    printf("Launching Job\n");
+
     struct process *p;
     pid_t pid;
     int mypipe[2], infile, outfile;
@@ -265,7 +265,7 @@ int launch_job (job *j, int foreground) {
 
 
     for (p = j->first_process; p; p = p->next) {
-        printf("Launching Process\n");
+        
         char **args = p->argv;
 
         if(args[0] == NULL) {
@@ -276,8 +276,8 @@ int launch_job (job *j, int foreground) {
 
         if (p->next) { //if there is another process in the linked list we create a pipe and save its stdout in outfile
             if (pipe (mypipe) < 0) {
+                printf("Pipe Error\n");
                 perror ("pipe");
-
                 exit (1); //what's this for?
             }
             outfile = mypipe[1]; //pipe's stdout
@@ -286,23 +286,26 @@ int launch_job (job *j, int foreground) {
         else
             outfile = j->stdout; //else just save the parent's stdout in outfile
 
-        if(!is_builtin(args[0])){ //check if it's a builtin function before you fork because these are handled differently
+        int x = is_builtin(args[0]);
+        if(x > -1) { //check if it's a builtin function before you fork because these are handled differently
+            printf("Built in detected!\n");
             j->pgid=0;
             launch_process (p, j->pgid, infile, outfile, j->stderr, foreground);
-
+            return 1;
         }
-        else pid = fork ();
+        else {
+            printf("About to fork!\n");
+            pid = fork ();
+        }
 
 
         if (pid == 0) {
-
+            // Child
+            printf("Child launching process\n");
             launch_process (p, j->pgid, infile, outfile, j->stderr, foreground);
         }
-        else if (pid < 0) { //The fork failed.
-            perror ("fork");
-            exit (1);
-        }
         else { //This is the parent process.
+            printf("Parent setting up PID's\n");
             p->pid = pid;
             if (shell_is_interactive) {
                 if (!j->pgid)
@@ -322,8 +325,9 @@ int launch_job (job *j, int foreground) {
 
     }
 
-    format_job_info (j, "launched");
+    //format_job_info (j, "launched");
 
+    
     if (!shell_is_interactive)
         wait_for_job (j);
     else if (foreground)
@@ -331,7 +335,9 @@ int launch_job (job *j, int foreground) {
     else
         put_job_in_background (j, 0);
 
-    return 0;
+
+    printf("Done launching job\n");
+    return 1;
 }
 
 /*Takes in pointer to new job from main as well as the array of strings containing
@@ -482,7 +488,7 @@ int is_builtin(char *arg) {
         if(strcmp(arg, builtin_str[y]) == 0)
              return y;
     }
-    return 0;
+    return -1;
 }
 
 process * create_process(   job * j, 
