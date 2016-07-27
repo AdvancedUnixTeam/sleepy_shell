@@ -69,6 +69,11 @@ before proceeding. */
             int cur_num_args = 0;
 
             cur_job->first_process = create_process(cur_job, args, num_tokens, &infile, &outfile, &errfile, 0, &process_count);
+            cur_job->stdin = open(infile, O_CREAT, S_IRWXU);
+            cur_job->stdout = open(outfile, O_CREAT, S_IRWXU);
+            cur_job->stderr = open(errfile, O_CREAT, S_IRWXU);
+
+
             cur_process = cur_job->first_process;
 
             i = 0;

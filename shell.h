@@ -8,6 +8,9 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #define SHELL_TOK_BUFFSIZE  64
 #define SHELL_TOK_DELIM     " \t\r\n\a"
