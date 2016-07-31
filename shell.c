@@ -1,5 +1,16 @@
 #include "shell.h"
 
+/*
+TO DO: 
+Implement Following Built ins:
+    -PWD
+    -FG
+    -BG
+    -Stop
+    -Bind CTRL-Z to Stop
+*/
+
+
 char *builtin_str[] = {"cd",
                        "help",
                        "exit"};
@@ -165,7 +176,7 @@ int mark_process_status (pid_t pid, int status) {
                 return 0;
              }
         fprintf (stderr, "No child process %d.\n", pid);
-        return -1;
+        return 1;
     }
     else if (pid == 0 || errno == ECHILD)
         /* No processes ready to report.  */
@@ -227,12 +238,10 @@ void launch_process (process *p,
 
     /* Set the standard input/output channels of the new process.  */
     if (infile != STDIN_FILENO) {
-        printf("infile is not stdin\n");
         dup2 (infile, STDIN_FILENO);
         close (infile);
     }
     if (outfile != STDOUT_FILENO) {
-        printf("outfile is not stdout\n");
         dup2 (outfile, STDOUT_FILENO);
         close (outfile);
     }
@@ -276,7 +285,6 @@ int launch_job (job *j, int foreground) {
 
         if (p->next) { //if there is another process in the linked list we create a pipe and save its stdout in outfile
             if (pipe (mypipe) < 0) {
-                printf("Pipe Error\n");
                 perror ("pipe");
                 exit (1); //what's this for?
             }
@@ -286,32 +294,33 @@ int launch_job (job *j, int foreground) {
         else
             outfile = j->stdout; //else just save the parent's stdout in outfile
 
-        int x = is_builtin(args[0]);
-        if(x > -1) { //check if it's a builtin function before you fork because these are handled differently
-            printf("Built in detected!\n");
-            j->pgid=0;
+        int builtin = is_builtin(args[0]);
+        if(builtin > -1) { //check if it's a builtin function before you fork because these are handled differently
             launch_process (p, j->pgid, infile, outfile, j->stderr, foreground);
             return 1;
         }
         else {
-            printf("About to fork!\n");
+            //printf("Forking!\n");
             pid = fork ();
         }
 
 
         if (pid == 0) {
             // Child
-            printf("Child launching process\n");
+            //printf("Child is launching process\n");
             launch_process (p, j->pgid, infile, outfile, j->stderr, foreground);
         }
         else { //This is the parent process.
-            printf("Parent setting up PID's\n");
+            //printf("Parent is setting PID's\n");
             p->pid = pid;
             if (shell_is_interactive) {
+                //printf("Setting up Job PID's\n");
                 if (!j->pgid)
                 j->pgid = pid;
                 setpgid (pid, j->pgid);
             }
+
+            
         }
 
         // Clean up after pipes.
@@ -324,19 +333,29 @@ int launch_job (job *j, int foreground) {
 
 
     }
+    
+    update_status();
+    if (!shell_is_interactive) {
+        //printf("Waiting for job!\n");
+        wait_for_job (j);
+    }
+    else if (foreground) {
+        //printf("Putting Job in Foreground!\n");
+        put_job_in_foreground (j, 0);
+    }
+    else {
+        //printf("Putting Job in Background!\n");
+        put_job_in_background (j, 0);
+    }
 
     //format_job_info (j, "launched");
 
+
+
     
-    if (!shell_is_interactive)
-        wait_for_job (j);
-    else if (foreground)
-        put_job_in_foreground (j, 0);
-    else
-        put_job_in_background (j, 0);
 
 
-    printf("Done launching job\n");
+
     return 1;
 }
 
@@ -351,11 +370,9 @@ the tokens read. It parses the tokens constructing the process list along the wa
     j->stdin=STDIN_FILENO;
     j->stdout=STDOUT_FILENO;
     j->stderr=STDERR_FILENO;
-
     do {
         //initialize process structure
         this_process->next=NULL;
-
         //begin parsing token list
         if(strcmp(args[i], "|") == 0) printf("Pipe token found!\n");
         else if(strcmp(args[i], ">") == 0) printf("Outfile token found!\n");
@@ -373,7 +390,6 @@ the tokens read. It parses the tokens constructing the process list along the wa
         }
         i++;
     } while(args[i] != NULL);
-
     return 0;
 } *//* Finished processing tokens */
 
@@ -493,9 +509,11 @@ int is_builtin(char *arg) {
 
 process * create_process(   job * j, 
                             char ** tokens, int num_tokens,
-                            int position, int * process_count) {
+                            int position, int * process_count, int *foreground) {
 
     
+
+
     int buffsize = SHELL_RL_BUFFSIZE;
     int max_position = num_tokens;
     int cur_position = 0;
@@ -504,6 +522,8 @@ process * create_process(   job * j,
     char ** cur_args = malloc(sizeof(char * ) * buffsize);
     cur_process->argv = cur_args;
     cur_process->argc = cur_argc;
+
+
     
     if(!cur_args || !cur_process) {
         fprintf(stderr, "create_process: allocation error\n");
@@ -526,6 +546,14 @@ process * create_process(   job * j,
         return cur_process;
     }
 
+    if(!strcmp(tokens[max_position-1], "&")) {
+        *foreground = 0;
+        max_position--;
+        num_tokens--;
+    }
+
+
+
     if(is_io(tokens[0])) {
         fprintf(stderr, "create_process: invalid input\n");
         exit(EXIT_FAILURE);
@@ -540,7 +568,7 @@ process * create_process(   job * j,
                 cur_process->argc = cur_argc;
                 (*process_count)++;
                 //printf("Process Count = %d\n", *process_count);
-                cur_process->next = create_process(j, tokens, num_tokens, ++position, process_count);
+                cur_process->next = create_process(j, tokens, num_tokens, ++position, process_count, foreground);
                 return cur_process;
             }
             else if(is_input(tokens[position])) {

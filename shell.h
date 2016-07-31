@@ -52,6 +52,7 @@ char **shell_split_line(char *line, int *num_tokens);
 int shell_process_tokens(job *j, char ** args);
 int launch_job (job *j, int foreground);
 job *first_job;
+int job_count;
 job *find_job (pid_t pgid);
 int job_is_stopped (job *j);
 int job_is_completed (job *j);
@@ -65,7 +66,7 @@ void do_job_notification (void);
 void free_job(void *j);
 process *create_process( job * j, 
                          char ** tokens, int num_tokens,
-                         int position, int *process_count);
+                         int position, int *process_count, int *foreground);
 /*
  *  builtin commands
  */

@@ -7,6 +7,10 @@ int main(void)
     char *line;
     char **args;
     int status=1;
+    struct job *j = malloc(sizeof(struct job));
+    job_count = 0;
+    first_job = malloc(sizeof(struct job));
+
 
     // Config Files
     // Command Line Loop
@@ -49,53 +53,57 @@ before proceeding. */
         {
             printf("【ツ】 ");
             line = shell_read_line();
-            //printf("line entered: %s\n", line);
+
             int num_tokens;
+            int foreground;
             args = shell_split_line(line, &num_tokens);
-            int i;
-            // for(i=0;args[i] != NULL;i++)
-            //     printf("token #%d: %s\n", i+1, args[i]);
+
             struct job *cur_job = malloc(sizeof(struct job));
             if(!cur_job){
                 fprintf(stderr, "main: allocation error\n");
                         exit(EXIT_FAILURE);
             }
-     //     shell_process_tokens(theJob, args);
-            struct process *cur_process;
+
+            foreground = 1;
 
             int process_count = 0;
-            int cur_num_args = 0;
             cur_job->stdin = STDIN_FILENO;
             cur_job->stdout = STDOUT_FILENO;
             cur_job->stderr = STDERR_FILENO;
 
-            cur_job->first_process = create_process(cur_job, args, num_tokens, 0, &process_count);
-   
+            cur_job->first_process = create_process(cur_job, args, num_tokens, 0, &process_count, &foreground);
+            cur_job->next = NULL;
+
             
-            
-            
+            // TO DO: Build Job Linked List, currently just keeping track of 1  job
 
+            status = launch_job(cur_job, foreground); //change so it returns int status
 
-            cur_process = cur_job->first_process;
-
-            i = 0;
-            while(i < process_count) {
-
-                cur_num_args = cur_process->argc;
-                printf("Process %d: ", i);
-
-                int j;
-                for(j=0; j < cur_num_args; j++) {
-                    printf("%s ", cur_process->argv[j]);
-                }
-
-                cur_process = cur_process->next;
-                printf("\n");
-
-                i++;
+            if(job_count == 0) {
+                
+                first_job = cur_job;
+                first_job->next = NULL;
+                job_count++;
             }
+            else {
+                if(first_job->next == NULL) {
+                    first_job->next = cur_job;
+                    job_count++;
+                }
+                else {
+                    j = first_job;
+                    while(j->next != NULL) {
+                        j = j->next;
+                    }
 
-            status = launch_job(cur_job, 1); //change so it returns int status
+                    j->next = cur_job;
+                    job_count++;
+                }
+    
+            }
+            do_job_notification();
+
+
             free(line);
             free(args);
         } while (status);
